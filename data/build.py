@@ -77,26 +77,38 @@ def build_loader(config):
 
 
 def build_dataset(is_train, config):
+    transform = build_transform(is_train, config)
     if config.DATA.DATASET == 'imagenet':
-        transform = build_transform(is_train, config)
-        prefix = 'train' if is_train else 'val'
+        prefix = 'train' if is_train else 'test'#'val'
         if config.DATA.ZIP_MODE:
             ann_file = prefix + "_map.txt"
             prefix = prefix + ".zip@/"
             dataset = CachedImageFolder(config.DATA.DATA_PATH, ann_file, prefix, transform,
                                         cache_mode=config.DATA.CACHE_MODE if is_train else 'part')
         else:
-            # Data source on our machines. You will never need it.
-            nori_root = os.path.join('/home/dingxiaohan/ndp/', 'imagenet.train.nori.list' if is_train else 'imagenet.val.nori.list')
-            if os.path.exists(nori_root):
-                # Data source on our machines. You will never need it.
-                from nori_dataset import ImageNetNoriDataset
-                dataset = ImageNetNoriDataset(nori_root, transform=transform)
-            else:
-                import torchvision
-                print('use raw ImageNet data')
-                dataset = torchvision.datasets.ImageNet(root=config.DATA.DATA_PATH, split='train' if is_train else 'val', transform=transform)
-        nb_classes = 1000
+            root = os.path.join(config.DATA.DATA_PATH, prefix)
+            dataset = datasets.ImageFolder(root, transform=transform)
+        nb_classes = 89
+    # if config.DATA.DATASET == 'imagenet':
+    #     transform = build_transform(is_train, config)
+    #     prefix = 'train' if is_train else 'val'
+    #     if config.DATA.ZIP_MODE:
+    #         ann_file = prefix + "_map.txt"
+    #         prefix = prefix + ".zip@/"
+    #         dataset = CachedImageFolder(config.DATA.DATA_PATH, ann_file, prefix, transform,
+    #                                     cache_mode=config.DATA.CACHE_MODE if is_train else 'part')
+    #     else:
+    #         # Data source on our machines. You will never need it.
+    #         nori_root = os.path.join('/home/dingxiaohan/ndp/', 'imagenet.train.nori.list' if is_train else 'imagenet.val.nori.list')
+    #         if os.path.exists(nori_root):
+    #             # Data source on our machines. You will never need it.
+    #             from nori_dataset import ImageNetNoriDataset
+    #             dataset = ImageNetNoriDataset(nori_root, transform=transform)
+    #         else:
+    #             import torchvision
+    #             print('use raw ImageNet data')
+    #             dataset = torchvision.datasets.ImageNet(root=config.DATA.DATA_PATH, split='train' if is_train else 'val', transform=transform)
+    #     nb_classes = 1000
 
     elif config.DATA.DATASET == 'cf100':
         mean = [0.5070751592371323, 0.48654887331495095, 0.4409178433670343]
